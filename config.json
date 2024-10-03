@@ -1,0 +1,25 @@
+{
+  "rabbitmq": {
+    "url": "${RABBITMQ_URL}",
+    "rabbitmq_default_user": "${RABBITMQ_DEFAULT_USER}",
+    "rabbitmq_default_pass": "${RABBITMQ_DEFAULT_PASS}",
+    "rabbitmq_port": "${RABBITMQ_PORT}",
+    "queues": [ 
+      {
+        "name": "audit_queue",
+        "durable": true,
+        "auto_delete": false
+      },
+      {
+        "name": "voxstream_queue",
+        "durable": true,
+        "auto_delete": false
+      },
+      {
+        "name": "user_created",
+        "durable": true,
+        "auto_delete": false
+      }
+    ]
+  }
+}
