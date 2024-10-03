@@ -25,11 +25,10 @@ services:
     depends_on:
       - rabbitmq
     environment:
-      RABBITMQ_URL: rabbitmq
+      RABBITMQ_URL: ${RABBITMQ_URL}
       RABBITMQ_PORT: 5672
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
-    restart: on-failure
 
 volumes:
   rabbitmq_data:  # Named volume for persistent RabbitMQ data

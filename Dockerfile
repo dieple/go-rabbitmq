@@ -1,29 +1,35 @@
-# Use the official Go image as a build environment
-FROM golang:1.23 AS builder
+# Stage 1: Build the Go app
+FROM golang:1.23-alpine AS builder
 
-# Set the Current Working Directory inside the container
+# Set working directory inside the container
 WORKDIR /app
 
-# Copy go.mod and go.sum files
+# Copy go.mod and go.sum and download dependencies
 COPY go.mod go.sum ./
-
-# Download all dependencies. Dependencies will be cached if the go.mod and go.sum files are not changed
 RUN go mod download
 
-# Copy the source code into the container
+# Copy the entire source code and build the application binary
 COPY . .
+RUN CGO_ENABLED=0 GOOS=linux go build -o add_rabbitmq_queue ./main.go
 
-# Build the Go app
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o rabbitmq ./main.go
+# Stage 2: Create a minimal image to run the Go app as a non-root user
+FROM alpine:latest
 
-# Start a new stage from scratch
-FROM alpine:latest  
+# Create a non-root user and group
+RUN addgroup -S voxgroup && adduser -S voxuser -G voxgroup
 
-# Set the Current Working Directory inside the container
-WORKDIR /root/
+# Set working directory
+WORKDIR /app
 
-# Copy the Pre-built binary file from the previous stage
-COPY --from=builder /app/rabbitmq .
+# Copy only the binary from the builder stage
+COPY --from=builder /app/add_rabbitmq_queue .
+COPY config.json .
 
-# Command to run the executable
-CMD ["./rabbitmq"]
+# Create logs directory and set permissions
+RUN mkdir -p logs && chown -R voxuser:voxgroup /app/logs
+
+# Switch to the non-root user
+USER voxuser
+
+# Run the Go app
+ENTRYPOINT ["/app/add_rabbitmq_queue"]

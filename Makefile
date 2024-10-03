@@ -1,4 +1,4 @@
-APP_NAME = rabbitmq
+APP_NAME = add_rabbitmq_queue
 DOCKER_COMPOSE_FILE = ./docker-compose.yaml
 
 # Auto-detect system architecture (amd64 for x86, arm64 for ARM-based systems)
@@ -16,17 +16,8 @@ build:
 docker-compose-up: build
 	@echo "Starting Docker Compose services..."
 	env $(grep -v '^#' .env | xargs) docker-compose -f $(DOCKER_COMPOSE_FILE) up --build -d
-
-# Create queues and wait for RabbitMQ to be ready
-create-queue: docker-compose-up
-	@echo "Waiting for RabbitMQ to be ready..."
-	@until curl -s -o /dev/null -w "%{http_code}" http://localhost:15672/api/overview -u $${RABBITMQ_DEFAULT_USER}:$${RABBITMQ_DEFAULT_PASS} | grep -q 200; do \
-		echo "RabbitMQ is not ready yet. Waiting..."; \
-		sleep 5; \
-	done
-	@echo "RabbitMQ is ready. Creating queues..."
-	@docker-compose -f $(DOCKER_COMPOSE_FILE) up --build -d go-app
-
+	bash test.sh
+	
 # Stop services using Docker Compose
 docker-compose-down:
 	@echo "Stopping Docker Compose services..."

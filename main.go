@@ -112,17 +112,16 @@ func getEnv(key, defaultValue string) string {
 
 // Function to initialize the RabbitMQ connection with retry logic
 func initializeRabbitMQ(cfg *Config) (*amqp.Connection, error) {
-	rabbitURL := fmt.Sprintf("amqp://%s:%s@%s:%s/",
-		cfg.RabbitMQ.User, cfg.RabbitMQ.Password, cfg.RabbitMQ.URL, cfg.RabbitMQ.Port)
-
 	var conn *amqp.Connection
 	var err error
 
+	log.Printf("initializeRabbitMQ URL: %v", cfg.RabbitMQ.URL)
+
 	// Retry loop
 	for attempt := 1; attempt <= maxRetries; attempt++ {
-		conn, err = amqp.Dial(rabbitURL)
+		conn, err = amqp.Dial(cfg.RabbitMQ.URL)
 		if err == nil {
-			log.Printf("Connected to RabbitMQ at %s (attempt %d)", rabbitURL, attempt)
+			log.Printf("Connected to RabbitMQ at %s (attempt %d)", cfg.RabbitMQ.URL, attempt)
 			return conn, nil
 		}
 
